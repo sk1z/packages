@@ -6,6 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'src/video_track.dart';
+import 'src/video_tracks.dart';
+
+export 'src/video_track.dart';
+export 'src/video_tracks.dart';
+
 /// The interface that implementations of video_player must implement.
 ///
 /// Platform implementations should extend this class rather than implement it as `video_player`
@@ -76,6 +82,21 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   /// Sets the volume to a range between 0.0 and 1.0.
   Future<void> setVolume(int textureId, double volume) {
     throw UnimplementedError('setVolume() has not been implemented.');
+  }
+
+  /// Gets the tracks of the video.
+  Future<VideoTracks> getTracks(int textureId) {
+    throw UnimplementedError('getTracks() has not been implemented.');
+  }
+
+  /// Sets the track of the video.
+  Future<void> selectTrack(
+    int textureId,
+    int renderer,
+    int group,
+    int index,
+  ) {
+    throw UnimplementedError('selectTrack() has not been implemented.');
   }
 
   /// Sets the video position to a [Duration] from the start.
@@ -214,6 +235,7 @@ class VideoEvent {
   VideoEvent({
     required this.eventType,
     this.duration,
+    this.audioTrack,
     this.size,
     this.rotationCorrection,
     this.buffered,
@@ -227,6 +249,9 @@ class VideoEvent {
   ///
   /// Only used if [eventType] is [VideoEventType.initialized].
   final Duration? duration;
+
+  /// Current audio track id of the video.
+  final String? audioTrack;
 
   /// Size of the video.
   ///
@@ -255,6 +280,7 @@ class VideoEvent {
             runtimeType == other.runtimeType &&
             eventType == other.eventType &&
             duration == other.duration &&
+            audioTrack == other.audioTrack &&
             size == other.size &&
             rotationCorrection == other.rotationCorrection &&
             listEquals(buffered, other.buffered) &&
@@ -265,6 +291,7 @@ class VideoEvent {
   int get hashCode => Object.hash(
         eventType,
         duration,
+        audioTrack,
         size,
         rotationCorrection,
         buffered,
@@ -279,6 +306,9 @@ class VideoEvent {
 enum VideoEventType {
   /// The video has been initialized.
   initialized,
+
+  /// The audio track has changed.
+  audioTrackChanged,
 
   /// The playback has ended.
   completed,

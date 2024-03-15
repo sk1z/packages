@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -90,6 +91,38 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
+  Future<VideoTracks> getTracks(int textureId) async {
+    final TracksMessage tracks =
+        await _api.getTracks(TextureMessage(textureId: textureId));
+
+    return VideoTracks(
+      audioTracks: tracks.audioTracks.map((dynamic track) {
+        final dynamic map = jsonDecode(track as String);
+        return VideoTrack.fromJson(map as Map<String, dynamic>);
+      }).toList(),
+      subtitleTracks: tracks.subtitleTracks.map((dynamic track) {
+        final dynamic map = jsonDecode(track as String);
+        return VideoTrack.fromJson(map as Map<String, dynamic>);
+      }).toList(),
+    );
+  }
+
+  @override
+  Future<void> selectTrack(
+    int textureId,
+    int renderer,
+    int group,
+    int index,
+  ) {
+    return _api.selectTrack(TrackMessage(
+      textureId: textureId,
+      renderer: renderer,
+      group: group,
+      index: index,
+    ));
+  }
+
+  @override
   Future<void> setPlaybackSpeed(int textureId, double speed) {
     assert(speed > 0);
 
@@ -128,6 +161,11 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
             size: Size((map['width'] as num?)?.toDouble() ?? 0.0,
                 (map['height'] as num?)?.toDouble() ?? 0.0),
             rotationCorrection: map['rotationCorrection'] as int? ?? 0,
+          );
+        case 'audioTrackChanged':
+          return VideoEvent(
+            eventType: VideoEventType.audioTrackChanged,
+            audioTrack: map['audioTrack'] as String,
           );
         case 'completed':
           return VideoEvent(

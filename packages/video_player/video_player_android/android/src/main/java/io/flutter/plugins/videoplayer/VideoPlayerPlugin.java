@@ -21,6 +21,8 @@ import io.flutter.plugins.videoplayer.Messages.PlaybackSpeedMessage;
 import io.flutter.plugins.videoplayer.Messages.PositionMessage;
 import io.flutter.plugins.videoplayer.Messages.TextureMessage;
 import io.flutter.plugins.videoplayer.Messages.VolumeMessage;
+import io.flutter.plugins.videoplayer.Messages.TracksMessage;
+import io.flutter.plugins.videoplayer.Messages.TrackMessage;
 import io.flutter.view.TextureRegistry;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -174,6 +176,18 @@ public class VideoPlayerPlugin implements FlutterPlugin, AndroidVideoPlayerApi {
   public void setVolume(@NonNull VolumeMessage arg) {
     VideoPlayer player = videoPlayers.get(arg.getTextureId());
     player.setVolume(arg.getVolume());
+  }
+
+  public @NonNull TracksMessage getTracks(@NonNull TextureMessage arg) {
+    Long textureId = arg.getTextureId();
+    VideoPlayer player = videoPlayers.get(textureId);
+    return player.getTracks(textureId);
+  }
+
+  public void selectTrack(@NonNull TrackMessage arg) {
+    VideoPlayer player = videoPlayers.get(arg.getTextureId());
+    player.selectTrack(arg.getRenderer().intValue(), arg.getGroup().intValue(),
+            arg.getIndex().intValue());
   }
 
   public void setPlaybackSpeed(@NonNull PlaybackSpeedMessage arg) {

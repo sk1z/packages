@@ -84,6 +84,73 @@ class VolumeMessage {
   }
 }
 
+class TracksMessage {
+  TracksMessage({
+    required this.textureId,
+    required this.audioTracks,
+    required this.subtitleTracks,
+  });
+
+  int textureId;
+
+  List<Object?> audioTracks;
+
+  List<Object?> subtitleTracks;
+
+  Object encode() {
+    return <Object?>[
+      textureId,
+      audioTracks,
+      subtitleTracks,
+    ];
+  }
+
+  static TracksMessage decode(Object result) {
+    result as List<Object?>;
+    return TracksMessage(
+      textureId: result[0]! as int,
+      audioTracks: result[1]! as List<Object?>,
+      subtitleTracks: result[2]! as List<Object?>,
+    );
+  }
+}
+
+class TrackMessage {
+  TrackMessage({
+    required this.textureId,
+    required this.renderer,
+    required this.group,
+    required this.index,
+  });
+
+  int textureId;
+
+  int renderer;
+
+  int group;
+
+  int index;
+
+  Object encode() {
+    return <Object?>[
+      textureId,
+      renderer,
+      group,
+      index,
+    ];
+  }
+
+  static TrackMessage decode(Object result) {
+    result as List<Object?>;
+    return TrackMessage(
+      textureId: result[0]! as int,
+      renderer: result[1]! as int,
+      group: result[2]! as int,
+      index: result[3]! as int,
+    );
+  }
+}
+
 class PlaybackSpeedMessage {
   PlaybackSpeedMessage({
     required this.textureId,
@@ -172,8 +239,7 @@ class CreateMessage {
       uri: result[1] as String?,
       packageName: result[2] as String?,
       formatHint: result[3] as String?,
-      httpHeaders:
-          (result[4] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+      httpHeaders: (result[4] as Map<Object?, Object?>?)!.cast<String?, String?>(),
     );
   }
 }
@@ -221,8 +287,14 @@ class _AndroidVideoPlayerApiCodec extends StandardMessageCodec {
     } else if (value is TextureMessage) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeMessage) {
+    } else if (value is TrackMessage) {
       buffer.putUint8(134);
+      writeValue(buffer, value.encode());
+    } else if (value is TracksMessage) {
+      buffer.putUint8(135);
+      writeValue(buffer, value.encode());
+    } else if (value is VolumeMessage) {
+      buffer.putUint8(136);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -232,19 +304,23 @@ class _AndroidVideoPlayerApiCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 128:
+      case 128: 
         return CreateMessage.decode(readValue(buffer)!);
-      case 129:
+      case 129: 
         return LoopingMessage.decode(readValue(buffer)!);
-      case 130:
+      case 130: 
         return MixWithOthersMessage.decode(readValue(buffer)!);
-      case 131:
+      case 131: 
         return PlaybackSpeedMessage.decode(readValue(buffer)!);
-      case 132:
+      case 132: 
         return PositionMessage.decode(readValue(buffer)!);
-      case 133:
+      case 133: 
         return TextureMessage.decode(readValue(buffer)!);
-      case 134:
+      case 134: 
+        return TrackMessage.decode(readValue(buffer)!);
+      case 135: 
+        return TracksMessage.decode(readValue(buffer)!);
+      case 136: 
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -266,7 +342,8 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.initialize', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -357,6 +434,55 @@ class AndroidVideoPlayerApi {
   Future<void> setVolume(VolumeMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.setVolume', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<TracksMessage> getTracks(TextureMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.AndroidVideoPlayerApi.getTracks', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as TracksMessage?)!;
+    }
+  }
+
+  Future<void> selectTrack(TrackMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.AndroidVideoPlayerApi.selectTrack', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;

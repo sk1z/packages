@@ -14,7 +14,13 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 import 'src/closed_caption_file.dart';
 
 export 'package:video_player_platform_interface/video_player_platform_interface.dart'
-    show DataSourceType, DurationRange, VideoFormat, VideoPlayerOptions;
+    show
+        DataSourceType,
+        DurationRange,
+        VideoFormat,
+        VideoPlayerOptions,
+        VideoTrack,
+        VideoTracks;
 
 export 'src/closed_caption_file.dart';
 
@@ -39,6 +45,7 @@ class VideoPlayerValue {
   /// rest will initialize with default values when unset.
   const VideoPlayerValue({
     required this.duration,
+    this.audioTrack = '',
     this.size = Size.zero,
     this.position = Duration.zero,
     this.caption = Caption.none,
@@ -74,6 +81,9 @@ class VideoPlayerValue {
   ///
   /// The duration is [Duration.zero] if the video hasn't been initialized.
   final Duration duration;
+
+  /// Current audio track id of the video.
+  final String audioTrack;
 
   /// The current playback position.
   final Duration position;
@@ -152,6 +162,7 @@ class VideoPlayerValue {
   /// except for any overrides passed in as arguments to [copyWith].
   VideoPlayerValue copyWith({
     Duration? duration,
+    String? audioTrack,
     Size? size,
     Duration? position,
     Caption? caption,
@@ -169,6 +180,7 @@ class VideoPlayerValue {
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
+      audioTrack: audioTrack ?? this.audioTrack,
       size: size ?? this.size,
       position: position ?? this.position,
       caption: caption ?? this.caption,
@@ -192,6 +204,7 @@ class VideoPlayerValue {
   String toString() {
     return '${objectRuntimeType(this, 'VideoPlayerValue')}('
         'duration: $duration, '
+        'audioTrack: $audioTrack, '
         'size: $size, '
         'position: $position, '
         'caption: $caption, '
@@ -213,6 +226,7 @@ class VideoPlayerValue {
       other is VideoPlayerValue &&
           runtimeType == other.runtimeType &&
           duration == other.duration &&
+          audioTrack == other.audioTrack &&
           position == other.position &&
           caption == other.caption &&
           captionOffset == other.captionOffset &&
@@ -231,6 +245,7 @@ class VideoPlayerValue {
   @override
   int get hashCode => Object.hash(
         duration,
+        audioTrack,
         position,
         caption,
         captionOffset,
@@ -455,6 +470,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           _applyLooping();
           _applyVolume();
           _applyPlayPause();
+        case VideoEventType.audioTrackChanged:
+          value = value.copyWith(audioTrack: event.audioTrack);
         case VideoEventType.completed:
           // In this case we need to stop _timer, set isPlaying=false, and
           // position=value.duration. Instead of setting the values directly,
@@ -561,6 +578,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (value.isPlaying) {
       await _videoPlayerPlatform.play(_textureId);
 
+      final Duration? newPosition = await position;
+      if (newPosition != null) {
+        _updatePosition(newPosition);
+      }
+
       // Cancel previous timer.
       _timer?.cancel();
       _timer = Timer.periodic(
@@ -645,6 +667,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> setVolume(double volume) async {
     value = value.copyWith(volume: volume.clamp(0.0, 1.0));
     await _applyVolume();
+  }
+
+  /// Gets the tracks.
+  Future<VideoTracks> getTracks() {
+    return _videoPlayerPlatform.getTracks(_textureId);
+  }
+
+  /// Sets the track.
+  Future<void> selectTrack(int renderer, int group, int index) {
+    return _videoPlayerPlatform.selectTrack(_textureId, renderer, group, index);
   }
 
   /// Sets the playback speed of [this].

@@ -30,6 +30,30 @@ class VolumeMessage {
   double volume;
 }
 
+class TracksMessage {
+  TracksMessage(
+    this.textureId,
+    this.audioTracks,
+    this.subtitleTracks,
+  );
+  int textureId;
+  List audioTracks;
+  List subtitleTracks;
+}
+
+class TrackMessage {
+  TrackMessage(
+    this.textureId,
+    this.renderer,
+    this.group,
+    this.index,
+  );
+  int textureId;
+  int renderer;
+  int group;
+  int index;
+}
+
 class PlaybackSpeedMessage {
   PlaybackSpeedMessage(this.textureId, this.speed);
   int textureId;
@@ -63,6 +87,8 @@ abstract class AndroidVideoPlayerApi {
   void dispose(TextureMessage msg);
   void setLooping(LoopingMessage msg);
   void setVolume(VolumeMessage msg);
+  TracksMessage getTracks(TextureMessage msg);
+  void selectTrack(TrackMessage msg);
   void setPlaybackSpeed(PlaybackSpeedMessage msg);
   void play(TextureMessage msg);
   PositionMessage position(TextureMessage msg);
