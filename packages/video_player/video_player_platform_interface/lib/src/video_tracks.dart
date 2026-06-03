@@ -1,4 +1,5 @@
-import 'video_track.dart';
+import 'audio_track.dart';
+import 'subtitle_track.dart';
 
 /// A representation of a video tracks.
 class VideoTracks {
@@ -9,8 +10,8 @@ class VideoTracks {
   });
 
   /// Audio tracks.
-  final List<VideoTrack> audioTracks;
+  final List<AudioTrack> audioTracks;
 
   /// Subtitle tracks.
-  final List<VideoTrack> subtitleTracks;
+  final List<SubtitleTrack> subtitleTracks;
 }

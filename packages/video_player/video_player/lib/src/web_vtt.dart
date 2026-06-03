@@ -30,7 +30,7 @@ List<Caption> _parseCaptionsFromWebVTTString(String file) {
   // Ignore metadata
   final Set<String> metadata = <String>{'HEADER', 'NOTE', 'REGION', 'WEBVTT'};
 
-  int captionNumber = 1;
+  // int captionNumber = 1;
   for (final List<String> captionLines in _readWebVTTFile(file)) {
     // CaptionLines represent a complete caption.
     // E.g
@@ -54,7 +54,7 @@ List<Caption> _parseCaptionsFromWebVTTString(String file) {
     if (hasHeader) {
       final int? tryParseCaptionNumber = int.tryParse(captionLines[0]);
       if (tryParseCaptionNumber != null) {
-        captionNumber = tryParseCaptionNumber;
+        // captionNumber = tryParseCaptionNumber;
       }
     }
 
@@ -73,13 +73,14 @@ List<Caption> _parseCaptionsFromWebVTTString(String file) {
     final String textWithoutFormat = _extractTextFromHtml(text);
 
     final Caption newCaption = Caption(
-      number: captionNumber,
+      // number: captionNumber,
+      first: false,
       start: captionRange.start,
       end: captionRange.end,
       text: textWithoutFormat,
     );
     captions.add(newCaption);
-    captionNumber++;
+    // captionNumber++;
   }
 
   return captions;

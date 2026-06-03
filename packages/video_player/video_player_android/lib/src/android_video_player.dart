@@ -98,11 +98,11 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
     return VideoTracks(
       audioTracks: tracks.audioTracks.map((dynamic track) {
         final dynamic map = jsonDecode(track as String);
-        return VideoTrack.fromJson(map as Map<String, dynamic>);
+        return AudioTrack.fromJson(map as Map<String, dynamic>);
       }).toList(),
       subtitleTracks: tracks.subtitleTracks.map((dynamic track) {
         final dynamic map = jsonDecode(track as String);
-        return VideoTrack.fromJson(map as Map<String, dynamic>);
+        return SubtitleTrack.fromJson(map as Map<String, dynamic>);
       }).toList(),
     );
   }

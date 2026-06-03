@@ -39,14 +39,17 @@ class Caption {
   /// This is not recommended for direct use unless you are writing a parser for
   /// a new closed captioning file type.
   const Caption({
-    required this.number,
+    // required this.number,
+    required this.first,
     required this.start,
     required this.end,
     required this.text,
   });
 
   /// The number that this caption was assigned.
-  final int number;
+  // final int number;
+
+  final bool first;
 
   /// When in the given video should this [Caption] begin displaying.
   final Duration start;
@@ -61,7 +64,8 @@ class Caption {
   /// A no caption object. This is a caption with [start] and [end] durations of zero,
   /// and an empty [text] string.
   static const Caption none = Caption(
-    number: 0,
+    // number: 0,
+    first: false,
     start: Duration.zero,
     end: Duration.zero,
     text: '',
@@ -70,7 +74,8 @@ class Caption {
   @override
   String toString() {
     return '${objectRuntimeType(this, 'Caption')}('
-        'number: $number, '
+        // 'number: $number, '
+        'first: $first, '
         'start: $start, '
         'end: $end, '
         'text: $text)';
@@ -81,14 +86,16 @@ class Caption {
       identical(this, other) ||
       other is Caption &&
           runtimeType == other.runtimeType &&
-          number == other.number &&
+          // number == other.number &&
+          first == other.first &&
           start == other.start &&
           end == other.end &&
           text == other.text;
 
   @override
   int get hashCode => Object.hash(
-        number,
+        // number,
+        first,
         start,
         end,
         text,

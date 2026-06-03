@@ -1,23 +1,23 @@
 /// A representation of a single audio track.
-class VideoTrack {
-  /// Creates a new [VideoTrack] object.
-  const VideoTrack._({
+class AudioTrack {
+  /// Creates a new [AudioTrack] object.
+  const AudioTrack._({
     required this.renderer,
     required this.group,
     required this.index,
-    this.id,
-    this.language,
-    this.title,
+    required this.id,
+    required this.language,
+    required this.label,
   });
 
-  /// Creates a new [VideoTrack] object from json.
-  factory VideoTrack.fromJson(Map<String, dynamic> json) => VideoTrack._(
+  /// Creates a new [AudioTrack] object from json.
+  factory AudioTrack.fromJson(Map<String, dynamic> json) => AudioTrack._(
         renderer: json['renderer'] as int,
         group: json['group'] as int,
         index: json['index'] as int,
         id: json['id'] as String?,
         language: json['language'] as String?,
-        title: json['title'] as String?,
+        label: json['label'] as String?,
       );
 
   /// Renderer.
@@ -35,6 +35,6 @@ class VideoTrack {
   /// Language.
   final String? language;
 
-  /// Title.
-  final String? title;
+  /// Label.
+  final String? label;
 }

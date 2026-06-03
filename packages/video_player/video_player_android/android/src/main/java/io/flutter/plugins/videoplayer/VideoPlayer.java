@@ -41,6 +41,9 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugins.videoplayer.Messages.TracksMessage;
 import io.flutter.view.TextureRegistry;
@@ -91,13 +94,13 @@ final class VideoPlayer {
     this.options = options;
 
     RenderersFactory renderersFactory =
-            new DefaultRenderersFactory(context)
-                    .setExtensionRendererMode(
-                            DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+        new DefaultRenderersFactory(context)
+            .setExtensionRendererMode(
+                DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
     trackSelector = new DefaultTrackSelector(context);
     ExoPlayer exoPlayer = new ExoPlayer.Builder(context)
-            .setRenderersFactory(renderersFactory)
-            .setTrackSelector(trackSelector).build();
+        .setRenderersFactory(renderersFactory)
+        .setTrackSelector(trackSelector).build();
     Uri uri = Uri.parse(dataSource);
 
     buildHttpDataSourceFactory(httpHeaders);
@@ -171,11 +174,11 @@ final class VideoPlayer {
     switch (type) {
       case C.CONTENT_TYPE_SS:
         return new SsMediaSource.Factory(
-                new DefaultSsChunkSource.Factory(mediaDataSourceFactory), mediaDataSourceFactory)
+            new DefaultSsChunkSource.Factory(mediaDataSourceFactory), mediaDataSourceFactory)
             .createMediaSource(MediaItem.fromUri(uri));
       case C.CONTENT_TYPE_DASH:
         return new DashMediaSource.Factory(
-                new DefaultDashChunkSource.Factory(mediaDataSourceFactory), mediaDataSourceFactory)
+            new DefaultDashChunkSource.Factory(mediaDataSourceFactory), mediaDataSourceFactory)
             .createMediaSource(MediaItem.fromUri(uri));
       case C.CONTENT_TYPE_HLS:
         return new HlsMediaSource.Factory(mediaDataSourceFactory)
@@ -184,9 +187,9 @@ final class VideoPlayer {
         return new ProgressiveMediaSource.Factory(mediaDataSourceFactory)
             .createMediaSource(MediaItem.fromUri(uri));
       default:
-        {
-          throw new IllegalStateException("Unsupported type: " + type);
-        }
+      {
+        throw new IllegalStateException("Unsupported type: " + type);
+      }
     }
   }
 
@@ -341,61 +344,78 @@ final class VideoPlayer {
     result.setAudioTracks(audioTracks);
     result.setSubtitleTracks(subtitleTracks);
     MappingTrackSelector.MappedTrackInfo mappedTrackInfo =
-            trackSelector.getCurrentMappedTrackInfo();
+        trackSelector.getCurrentMappedTrackInfo();
     if (mappedTrackInfo == null) return result;
-
-    for (int i = 0; i < mappedTrackInfo.getRendererCount(); i++) {
-      int rendererType = mappedTrackInfo.getRendererType(i);
-
-      if (rendererType == C.TRACK_TYPE_AUDIO) {
-        addTracks(mappedTrackInfo, i, audioTracks, false);
-      } else if (rendererType == C.TRACK_TYPE_TEXT) {
-        addTracks(mappedTrackInfo, i, subtitleTracks, true);
+    for (int i = 0; i < mappedTrackInfo.getRendererCount(); i++)
+      switch (mappedTrackInfo.getRendererType(i)) {
+        case C.TRACK_TYPE_AUDIO -> addTracks(mappedTrackInfo, i, audioTracks, false);
+        case C.TRACK_TYPE_TEXT -> addTracks(mappedTrackInfo, i, subtitleTracks, true);
       }
-    }
+//    for (int i = 0; i < mappedTrackInfo.getRendererCount(); i++) {
+//      int rendererType = mappedTrackInfo.getRendererType(i);
+//      Log.d("видеотрек", "Renderer    " + i + "   " + rendererType);
+//      TrackGroupArray trackGroupArray = mappedTrackInfo.getTrackGroups(i);
+//      for (int s = 0; s < trackGroupArray.length; s++) {
+//        TrackGroup group = trackGroupArray.get(s);
+//        for (int k = 0; k < group.length; k++) {
+//          Format format = group.getFormat(k);
+//          Log.d("видеотрек", format.toString());
+//        }
+//      }
+//    }
     return result;
   }
 
   private void addTracks(
-          MappingTrackSelector.MappedTrackInfo mappedTrackInfo,
-          int renderer,
-          List<Object> tracks,
-          boolean subtitles
+      MappingTrackSelector.MappedTrackInfo mappedTrackInfo,
+      int renderer,
+      List<Object> tracks,
+      boolean subtitles
   ) {
+    int index = -1;
     TrackGroupArray trackGroupArray = mappedTrackInfo.getTrackGroups(renderer);
 
-    for (int s = 0; s < trackGroupArray.length; s++) {
-      TrackGroup group = trackGroupArray.get(s);
+    for (int i = 0; i < trackGroupArray.length; i++) {
+      TrackGroup trackGroup = trackGroupArray.get(i);
 
-      for (int k = 0; k < group.length; k++) {
-        if ((mappedTrackInfo.getTrackSupport(renderer, s, k) & 0b111) != C.FORMAT_HANDLED) continue;
-        Format format = group.getFormat(k);
-        if (subtitles && "application/pgs".equals(format.sampleMimeType)) continue;
-        String id = format.id;
-        String language = format.language;
-        String title = format.label;
-        tracks.add("{" +
-                "\"renderer\":" + renderer + "," +
-                "\"group\":" + s + "," +
-                "\"index\":" + k + "," +
-                "\"id\":" + (id != null ? "\"" + id + "\"" : null) + "," +
-                "\"language\":" + (language != null ? "\"" + language + "\"" : null) + "," +
-                "\"title\":" + (title != null ? "\"" + title + "\"" : null) + "}");
+      for (int s = 0; s < trackGroup.length; s++) {
+        Format format = trackGroup.getFormat(s);
+        if (subtitles) {
+          index++;
+          if ("application/pgs".equals(format.sampleMimeType)) continue;
+        } else if ((mappedTrackInfo.getTrackSupport(renderer, i, s) & 0b111) != C.FORMAT_HANDLED)
+          continue;
+
+        JSONObject json = new JSONObject();
+        try {
+          if (subtitles)
+            json.put("index", index);
+          else {
+            json.put("renderer", renderer);
+            json.put("group", i);
+            json.put("index", s);
+          }
+          json.put("id", format.id);
+          json.put("language", format.language);
+          json.put("label", format.label);
+          tracks.add(json.toString());
+        } catch (JSONException ignored) {
+        }
       }
     }
   }
 
   void selectTrack(int renderer, int group, int index) {
     MappingTrackSelector.MappedTrackInfo mappedTrackInfo =
-            trackSelector.getCurrentMappedTrackInfo();
+        trackSelector.getCurrentMappedTrackInfo();
     if (mappedTrackInfo == null) return;
     TrackGroup trackGroup = mappedTrackInfo.getTrackGroups(renderer).get(group);
     TrackSelectionOverride override = new TrackSelectionOverride(trackGroup, index);
     exoPlayer.setTrackSelectionParameters(
-            exoPlayer.getTrackSelectionParameters()
-                    .buildUpon()
-                    .setOverrideForType(override)
-                    .build());
+        exoPlayer.getTrackSelectionParameters()
+            .buildUpon()
+            .setOverrideForType(override)
+            .build());
   }
 
   void setPlaybackSpeed(double value) {

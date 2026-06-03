@@ -6,10 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'src/video_track.dart';
 import 'src/video_tracks.dart';
 
-export 'src/video_track.dart';
+export 'src/audio_track.dart';
+export 'src/subtitle_track.dart';
 export 'src/video_tracks.dart';
 
 /// The interface that implementations of video_player must implement.
@@ -89,7 +89,7 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('getTracks() has not been implemented.');
   }
 
-  /// Sets the track of the video.
+  /// Selects the specified track for playback.
   Future<void> selectTrack(
     int textureId,
     int renderer,

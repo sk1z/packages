@@ -15,11 +15,12 @@ import 'src/closed_caption_file.dart';
 
 export 'package:video_player_platform_interface/video_player_platform_interface.dart'
     show
+        AudioTrack,
         DataSourceType,
         DurationRange,
+        SubtitleTrack,
         VideoFormat,
         VideoPlayerOptions,
-        VideoTrack,
         VideoTracks;
 
 export 'src/closed_caption_file.dart';
@@ -669,12 +670,12 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _applyVolume();
   }
 
-  /// Gets the tracks.
+  /// Gets the tracks of the video.
   Future<VideoTracks> getTracks() {
     return _videoPlayerPlatform.getTracks(_textureId);
   }
 
-  /// Sets the track.
+  /// Selects the specified track for playback.
   Future<void> selectTrack(int renderer, int group, int index) {
     return _videoPlayerPlatform.selectTrack(_textureId, renderer, group, index);
   }

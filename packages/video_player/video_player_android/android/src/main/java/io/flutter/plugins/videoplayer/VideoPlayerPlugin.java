@@ -179,15 +179,14 @@ public class VideoPlayerPlugin implements FlutterPlugin, AndroidVideoPlayerApi {
   }
 
   public @NonNull TracksMessage getTracks(@NonNull TextureMessage arg) {
-    Long textureId = arg.getTextureId();
-    VideoPlayer player = videoPlayers.get(textureId);
-    return player.getTracks(textureId);
+    VideoPlayer player = videoPlayers.get(arg.getTextureId());
+    return player.getTracks(arg.getTextureId());
   }
 
   public void selectTrack(@NonNull TrackMessage arg) {
     VideoPlayer player = videoPlayers.get(arg.getTextureId());
     player.selectTrack(arg.getRenderer().intValue(), arg.getGroup().intValue(),
-            arg.getIndex().intValue());
+        arg.getIndex().intValue());
   }
 
   public void setPlaybackSpeed(@NonNull PlaybackSpeedMessage arg) {

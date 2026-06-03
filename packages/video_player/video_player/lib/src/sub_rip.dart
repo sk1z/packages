@@ -12,8 +12,8 @@ class SubRipCaptionFile extends ClosedCaptionFile {
   /// Parses a string into a [ClosedCaptionFile], assuming [fileContents] is in
   /// the SubRip file format.
   /// * See: https://en.wikipedia.org/wiki/SubRip
-  SubRipCaptionFile(this.fileContents)
-      : _captions = _parseCaptionsFromSubRipString(fileContents);
+  SubRipCaptionFile(this.fileContents, bool first)
+      : _captions = _parseCaptionsFromSubRipString(fileContents, first);
 
   /// The entire body of the SubRip file.
   // TODO(cyanglaz): Remove this public member as it doesn't seem need to exist.
@@ -26,21 +26,22 @@ class SubRipCaptionFile extends ClosedCaptionFile {
   final List<Caption> _captions;
 }
 
-List<Caption> _parseCaptionsFromSubRipString(String file) {
+List<Caption> _parseCaptionsFromSubRipString(String file, bool first) {
   final List<Caption> captions = <Caption>[];
   for (final List<String> captionLines in _readSubRipFile(file)) {
     if (captionLines.length < 3) {
       break;
     }
 
-    final int captionNumber = int.parse(captionLines[0]);
+    // final int captionNumber = int.parse(captionLines[0]);
     final _CaptionRange captionRange =
         _CaptionRange.fromSubRipString(captionLines[1]);
 
     final String text = captionLines.sublist(2).join('\n');
 
     final Caption newCaption = Caption(
-      number: captionNumber,
+      // number: captionNumber,
+      first: first,
       start: captionRange.start,
       end: captionRange.end,
       text: text,
